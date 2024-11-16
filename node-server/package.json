@@ -4,19 +4,29 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "watch": "tsc -w",
+    "dev": "concurrently \"npm run watch\" \"nodemon -r dotenv/config dist/index.js\"",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.21.1"
+    "express": "^4.21.1",
+    "generative-ai": "^0.1.4",
+    "mongoose": "^8.8.1",
+    "nodemon": "^3.1.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.3",
-    "@types/express": "^5.0.0"
+    "@types/express": "^5.0.0",
+    "@types/mongoose": "^5.11.97",
+    "concurrently": "^9.1.0"
   }
 }

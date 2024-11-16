@@ -23,6 +23,7 @@ app.use(express.urlencoded({
 app.use(express.static("public"))
 
 
-
+import testRouter from "./routes/test.routes"
+app.use("/api/v1/test", testRouter);
 
 export { app }
