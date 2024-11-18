@@ -9,13 +9,13 @@ router.route("/create-test").post(createTest);
 
 router.route("/submit-test").post(submitTest);
 
+router.route("/all-tests").get(getAllTests);
+
+router.route("/result/:resultId/:userId").get(getTestResult);
+
 router.route("/:testId").get(getTestById);
 
-router.route("/result/:resultId").get(getTestResult);
-
 router.route("/user/:userId").get(getUserTests);
-
-router.route("/all-tests").get(getAllTests);
 
 router.route("/stats/:userId").get(getTestStats);
 
