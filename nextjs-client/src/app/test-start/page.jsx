@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { createTest } from "@/actions/testActions";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Lottie from 'lottie-react';
@@ -42,23 +41,33 @@ const TestStartPage = () => {
   };
 
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api/v1";
     try {
       const response = await Promise.race([
-        createTest(testDetails),
-        // new Promise((_, reject) => setTimeout(() => reject(new Error("Request timed out")), 10000)) // 10-second timeout
+        fetch(`${baseUrl}/test/create-test`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(testDetails),
+        }).then((res) => res.json()),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out")), 10000)
+        ),
       ]);
 
-      if (response.success) {
-        router.push(`/test/${response.testId}`);
+      if (response?.statusCode === 201) {
+        router.push(`/test/${response.data.testId}`);
       } else {
-        toast.error("Failed to create test. Please try again.");
+        toast.error(response?.message || "Failed to create test. Please try again.");
       }
     } catch (error) {
       console.error("Error during test creation:", error);
-      toast.error("Failed to create test. Please try again.");
+      toast.error(error.message || "Failed to create test. Please try again.");
     } finally {
       setIsLoading(false);
     }
