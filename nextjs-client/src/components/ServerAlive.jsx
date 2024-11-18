@@ -1,4 +1,7 @@
 "use effect"
+
+import { useEffect } from "react";
+
 export default function PingServer() {
 
   useEffect(() => {
