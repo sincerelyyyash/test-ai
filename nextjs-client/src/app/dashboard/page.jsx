@@ -1,8 +1,7 @@
-"use client"
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { getUserTests, getTestResult, getTestStats } from "../../actions/testActions";
 import { useSession } from "next-auth/react";
-import { getUserDetails } from "@/actions";
 import Link from "next/link";
 import UserCard from "@/components/UserCard";
 import TestSummaryCard from "@/components/TestSummaryCard";
@@ -23,26 +22,45 @@ const Dashboard = () => {
   const [badges, setBadges] = useState([]);
 
   useEffect(() => {
-    const fetchTests = async () => {
+    const fetchData = async () => {
       if (session?.user?.id) {
         setLoading(true);
-        const userTests = await getUserTests(session.user.id);
-        const userdata = await getUserDetails(session.user.id);
-        const stats = await getTestStats(session.user.id);
-        setUserDetails(userdata);
-        setTestStats(stats);
 
-        const totalTests = userTests.length;
-        const totalAccuracy = userTests.reduce((acc, test) => acc + test.score, 0);
-        const avgAccuracy = totalTests > 0 ? (totalAccuracy / totalTests).toFixed(2) : 0;
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000/api/v1/";
 
-        setTestSummary({ totalTests, avgAccuracy });
-        setTests(userTests);
-        setBadges(calculateBadges(avgAccuracy));
-        setLoading(false);
+          const testsResponse = await fetch(`${baseUrl}/test/user/${session.user.id}`);
+          if (!testsResponse.ok) return;
+          const testsData = await testsResponse.json();
+
+          const userDetailsResponse = await fetch(`${baseUrl}/user/${session.user.id}`);
+          if (!userDetailsResponse.ok) return;
+          const userDetailsData = await userDetailsResponse.json();
+
+          const statsResponse = await fetch(`${baseUrl}/test/stats/${session.user.id}`);
+          if (!statsResponse.ok) return;
+          const statsData = await statsResponse.json();
+
+          setUserDetails(userDetailsData.data);
+          setTestStats(statsData.data);
+
+          const totalTests = testsData.data.length;
+          const totalAccuracy = testsData.data.reduce((acc, test) => acc + test.score, 0);
+          const avgAccuracy = totalTests > 0 ? (totalAccuracy / totalTests).toFixed(2) : 0;
+
+          setTestSummary({ totalTests, avgAccuracy });
+          setTests(testsData.data);
+          console.log(testsData.data)
+          setBadges(calculateBadges(avgAccuracy));
+        } catch (error) {
+          console.error("Error fetching dashboard data:", error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
-    fetchTests();
+
+    fetchData();
   }, [session]);
 
   const calculateBadges = (accuracy) => {
@@ -57,15 +75,31 @@ const Dashboard = () => {
     return badgeImages.filter((badge) => accuracy >= badge.threshold).map((badge) => badge.src);
   };
 
+
   const handleTestClick = async (test) => {
     setLoading(true);
-    const result = await getTestResult(test.id, session.user.id);
-    if (result.success) {
-      setSelectedTest(result.data);
-    } else {
-      console.error("Failed to fetch test details:", result.error);
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api/v1";
+
+      const resultResponse = await fetch(`${baseUrl}/test/result/${test._id}/${session.user.id}`);
+
+      if (!resultResponse.ok) {
+        console.error("Failed to fetch test result, Status Code:", resultResponse.status);
+        return;
+      }
+
+      const resultData = await resultResponse.json();
+      if (resultData.success) {
+        setSelectedTest(resultData.data);
+      } else {
+        console.error("Failed to fetch test details:", resultData.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error("Error handling test click:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleCloseDetails = () => {
