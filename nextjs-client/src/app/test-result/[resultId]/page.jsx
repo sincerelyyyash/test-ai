@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { getTestResult } from "@/actions/testActions";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -24,16 +23,35 @@ const TestResultPage = ({ params }) => {
   }, [status, router, params.resultId]);
 
   const fetchTestResult = async () => {
-    if (!session?.user?.id) return;
-    const testResult = await getTestResult(params.resultId, session.user.id);
-    if (testResult.success) {
-      setResult(testResult.data);
-    } else {
-      toast.error(testResult.error || "Failed to fetch test result");
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api/v1";
+
+    if (!session?.user?.id) {
+      toast.error("User not logged in");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${baseUrl}/test/result/${params.resultId}/${session.user.id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.statusCode === 200) {
+        setResult(result.data);
+      } else {
+        toast.error(result.message || "Failed to fetch test result");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error fetching test result:", error);
+      toast.error("An error occurred while fetching the test result.");
       router.push("/");
     }
   };
-
   if (status === "loading" || !result) {
     return <div className="flex justify-center items-center h-64">
       <Loader2 className="h-8 w-8 animate-spin" />

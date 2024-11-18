@@ -3,13 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { getTestById } from "@/actions/testActions";
 import TestQuestion from "@/components/TestQuestion";
 import CountdownTimer from "@/components/ui/CountdownTimer";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import { MultiStepLoader } from "@/components/ui/multi-step-loader"; // Import the loader
+import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 
 export default function TestPage({ params }) {
   const { testId } = params;
@@ -37,20 +36,36 @@ export default function TestPage({ params }) {
   }, [status, router, testId]);
 
   const fetchTest = async () => {
-    const testData = await getTestById(testId);
-    if (testData) {
-      setTest(testData);
-    } else {
-      toast.error("Test not found");
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api/v1";
+
+    try {
+      const response = await fetch(`${baseUrl}/test/${testId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.statusCode === 200) {
+        setTest(result.data);
+      } else {
+        toast.error(result.message || "Test not found");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error fetching test:", error);
+      toast.error("Failed to fetch test. Please try again.");
       router.push("/");
     }
   };
-
   const handleAnswerChange = (questionId, answer) => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
   const handleSubmit = async () => {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api/v1";
     if (!session || !session.user) {
       toast.error("Please log in to submit the test");
       return;
@@ -67,18 +82,36 @@ export default function TestPage({ params }) {
 
     setIsSubmitting(true);
 
-    const result = await submitTest(testId, userAnswers, session.user.id);
-    setIsSubmitting(false);
+    try {
+      const response = await fetch(`${baseUrl}/test/submit-test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          testId,
+          userAnswers,
+          userId: session.user.id,
+        }),
+      });
 
-    if (result.success) {
-      toast.success("Test submitted successfully");
-      router.push(`/test-result/${result.resultId}`);
-    } else {
-      toast.error(result.error || "Failed to submit test");
-      console.error("Submit error:", result.error);
+      const result = await response.json();
+
+      setIsSubmitting(false);
+
+      if (response.ok && result.statusCode === 201) {
+        toast.success("Test submitted successfully");
+        router.push(`/test-result/${result.data.resultId}`);
+      } else {
+        toast.error(result.message || "Failed to submit test");
+        console.error("Submit error:", result.message);
+      }
+    } catch (error) {
+      setIsSubmitting(false);
+      console.error("Error submitting test:", error);
+      toast.error("An error occurred while submitting the test. Please try again.");
     }
   };
-
   const handleNext = () => {
     if (currentQuestionIndex < test.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
