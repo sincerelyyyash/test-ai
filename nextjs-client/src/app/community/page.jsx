@@ -1,9 +1,9 @@
-"use client"
+"use client";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { getAllTests } from "@/actions/testActions";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react"; // Import Loader2
+import { Loader2 } from "lucide-react";
 
 const CommunityPage = () => {
   const [tests, setTests] = useState([]);
@@ -12,8 +12,20 @@ const CommunityPage = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const fetchedTests = await getAllTests();
-        setTests(fetchedTests);
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api/v1";
+        const response = await fetch(`${baseUrl}/test/all-tests`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch tests");
+        }
+
+        const data = await response.json();
+        setTests(data.data);
       } catch (error) {
         console.error("Error fetching tests:", error);
       } finally {
@@ -41,13 +53,13 @@ const CommunityPage = () => {
       </Link>
       <h1 className="text-3xl font-bold mb-6 px-6">Available Tests</h1>
       {tests.length === 0 ? (
-        <p>No tests available at the moment.</p>
+        <p className="flex justify-center items-center">No tests available at the moment.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 px-6 lg:grid-cols-3 gap-6">
           {tests.map((test) => (
             <div
               key={test._id}
-              className="bg-white dark:bg-zinc-900 dark:text-white  shadow-md rounded-lg p-6"
+              className="bg-white dark:bg-zinc-900 dark:text-white shadow-md rounded-lg p-6"
             >
               <h2 className="text-xl font-semibold mb-2">{test.title}</h2>
               <p className="text-gray-600 mb-4">{test.description}</p>
