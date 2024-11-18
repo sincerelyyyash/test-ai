@@ -108,8 +108,7 @@ export const getTestById = asyncHandler(async (req: Request, res: Response, next
 
 
 export const getTestResult = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const { resultId } = req.params;
-  const { userId } = req.query;
+  const { resultId, userId } = req.params;
 
   if (!resultId || !userId) {
     throw new ApiError({ statusCode: 400, message: "Result ID and User ID are required" });
