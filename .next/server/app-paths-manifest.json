@@ -1,0 +1,14 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(auth)/signup/page": "app/(auth)/signup/page.js",
+  "/(auth)/signin/page": "app/(auth)/signin/page.js",
+  "/community/page": "app/community/page.js",
+  "/api/auth/signup/route": "app/api/auth/signup/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/page": "app/page.js",
+  "/test-result/[resultId]/page": "app/test-result/[resultId]/page.js",
+  "/test-start/page": "app/test-start/page.js",
+  "/test/[testId]/page": "app/test/[testId]/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js"
+}
