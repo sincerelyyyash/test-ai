@@ -3,7 +3,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import { Providers } from "@/components/providers";
-import { Footer } from "@/components/Footer";
+import { GoogleTagManager } from '@next/third-parties/google'
 
 import { Analytics } from "@vercel/analytics/react";
 
@@ -27,6 +27,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <GoogleTagManager gtmId="GTM-NV58VX5T" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans dark:bg-black`}
       >
